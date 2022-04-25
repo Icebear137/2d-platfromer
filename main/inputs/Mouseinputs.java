@@ -52,7 +52,7 @@ public class Mouseinputs implements MouseListener, MouseMotionListener {
     }
     
     public void mouseMoved(MouseEvent e) {
-        gamePanel.setRectPos(e.getX(), e.getY());
+        
     }
     
 }

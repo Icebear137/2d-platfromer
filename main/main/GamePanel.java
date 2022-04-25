@@ -14,6 +14,8 @@ import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.io.InputStream;
 import java.nio.Buffer;
+import static utilz.Constants.PlayerConstant.*;
+import static utilz.Constants.Directtions.*;
 
 public class GamePanel extends JPanel {
     
@@ -21,9 +23,12 @@ public class GamePanel extends JPanel {
     private float xDelta = 100, yDelta = 100;
     private int frames = 0;
     private long lastCheck = 0;
-    private BufferedImage ildeimg, attackimg, jumpimg, runleftimg, runrightimg, deathimg, fallimg, takehitimg, attackimg2;
-    private BufferedImage[] idleAni, attackAni, attackAni2, deathAni, runningAni, runningAni2, jumpAni, fallAni, takehitAni;
+    private BufferedImage img;
+    private BufferedImage[][] animations;
     private int aniTick, aniIndex, aniSpeed = 10;
+    private int playerAction = IDLE;
+    private int playerDirection = -1;
+    private boolean moving = false;
     public GamePanel() {
         mouseInputs = new Mouseinputs(this);
         importImage();
@@ -35,81 +40,27 @@ public class GamePanel extends JPanel {
     }
     
     private void importImage() {
-        //import multiple image
-        try {
-            InputStream is = getClass().getResourceAsStream("/res/Idle.png");
-            ildeimg = ImageIO.read(is);
-            is = getClass().getResourceAsStream("/res/Attack1.png");
-            attackimg = ImageIO.read(is);
-            is = getClass().getResourceAsStream("/res/Attack2.png");
-            attackimg2 = ImageIO.read(is);
-            is = getClass().getResourceAsStream("/res/Death.png");
-            deathimg = ImageIO.read(is);
-            is = getClass().getResourceAsStream("/res/Fall.png");
-            fallimg = ImageIO.read(is);
-            is = getClass().getResourceAsStream("/res/Jump.png");
-            jumpimg = ImageIO.read(is);
-            is = getClass().getResourceAsStream("/res/Run 2.png");
-            runleftimg = ImageIO.read(is);
-            is = getClass().getResourceAsStream("/res/Run.png");
-            runrightimg = ImageIO.read(is);
-            is = getClass().getResourceAsStream("/res/Take Hit.png");
-            takehitimg = ImageIO.read(is);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        /*try {
-            ildeimg = ImageIO.read(getClass().getResourceAsStream("/res/Idle.png"));
-            attackimg = ImageIO.read(getClass().getResourceAsStream("/res/Attack1.png"));
-            jumpimg = ImageIO.read(getClass().getResourceAsStream("/res/Jump.png"));
-            runleftimg = ImageIO.read(getClass().getResourceAsStream("/res/Run 2.png"));
-            runrightimg = ImageIO.read(getClass().getResourceAsStream("/res/Run.png"));
-            deathimg = ImageIO.read(getClass().getResourceAsStream("/res/Death.png"));
-            fallimg = ImageIO.read(getClass().getResourceAsStream("/res/Fall.png"));
-            takehitimg = ImageIO.read(getClass().getResourceAsStream("/res/Take Hit.png"));
-            attackimg2 = ImageIO.read(getClass().getResourceAsStream("/res/Attack2.png"));
-        } catch (Exception e) {
-            e.printStackTrace();
         
-        }*/
+        InputStream is = getClass().getResourceAsStream("/res/charater_sprites.png");
+        try {
+            img = ImageIO.read(is);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                is.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
     private void loadAnimation() {
-        idleAni = new BufferedImage[8];
-        for (int i = 0; i < idleAni.length; i++) {
-            idleAni[i] = ildeimg.getSubimage(i * 200, 0, 200, 200);
+        animations = new BufferedImage[9][8];
+        for (int j = 0; j < animations.length; j++)
+            for (int i = 0; i < animations[j].length; i++) {
+                animations[j][i] = img.getSubimage(i * 200, j * 200, 200, 200);
         }
-        attackAni = new BufferedImage[6];
-        for (int i = 0; i < attackAni.length; i++) {
-            attackAni[i] = attackimg.getSubimage(i * 200, 0, 200, 200);
-        }
-        attackAni2 = new BufferedImage[6];
-        for (int i = 0; i < attackAni2.length; i++) {
-            attackAni2[i] = attackimg2.getSubimage(i * 200, 0, 200, 200);
-        }
-        deathAni = new BufferedImage[6];
-        for (int i = 0; i < deathAni.length; i++) {
-            deathAni[i] = deathimg.getSubimage(i * 200, 0, 200, 200);
-        }
-        runningAni = new BufferedImage[8];
-        for (int i = 0; i < runningAni.length; i++) {
-            runningAni[i] = runleftimg.getSubimage(i * 200, 0, 200, 200);
-        }
-        runningAni2 = new BufferedImage[8];
-        for (int i = 0; i < runningAni2.length; i++) {
-            runningAni2[i] = runrightimg.getSubimage(i * 200, 0, 200, 200);
-        }
-        jumpAni = new BufferedImage[2];
-        for (int i = 0; i < jumpAni.length; i++) {
-            jumpAni[i] = jumpimg.getSubimage(i * 200, 0, 200, 200);
-        }
-        fallAni = new BufferedImage[2];
-        for (int i = 0; i < fallAni.length; i++) {
-            fallAni[i] = fallimg.getSubimage(i * 200, 0, 200, 200);
-        }
-        takehitAni = new BufferedImage[4];
-        for (int i = 0; i < takehitAni.length; i++) {
-            takehitAni[i] = takehitimg.getSubimage(i * 200, 0, 200, 200);
-        }
+        
 
     }
     public void setPanelSize() {
@@ -118,35 +69,61 @@ public class GamePanel extends JPanel {
         setPreferredSize(size);
         setMaximumSize(size);
     }
-    
-    public void changexDelta(int value) {
-        this.xDelta += value;
-        
+    public void setDirection(int direction) {
+        this.playerDirection = direction;
+        moving = true;
     }
-    public void changeyDelta(int value) {
-        this.yDelta += value;
-        
+    public void setMoving(boolean moving) {
+        this.moving = moving;
     }
-    public void setRectPos(int x, int y) {
-        this.xDelta = x;
-        this.yDelta = y;
-        
-    }
+
     private void updateAnimationTick() {
         aniTick++;
         if (aniTick >= aniSpeed) {
             aniTick = 0;
             aniIndex++;
-            if (aniIndex >= idleAni.length) {
+            if (aniIndex >= GetSpritesAmount(playerAction)) {
                 aniIndex = 0;
             }
         }
     }
-    
+    private void setAnimation() {
+        if(moving) {
+            if(playerDirection == LEFT) {
+                playerAction = RUNNING2;
+            } else if(playerDirection == RIGHT) {
+                playerAction = RUNNING1;
+            } else {
+                playerAction = IDLE;
+            }
+        
+        }
+    }
+    public void updatePos(){
+        if(moving) {
+            switch(playerDirection) {
+                case LEFT:
+                    xDelta-=5;
+                    break;
+                case UP:
+                    yDelta-=5;
+                    break;
+                case RIGHT:
+                    xDelta+=5;
+                    break;
+                case DOWN:
+                    yDelta+=5;
+                    break;
+            }
+        }
+    }
+
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         updateAnimationTick();
-        g.drawImage(idleAni[aniIndex], (int)xDelta, (int)yDelta,200,200, null);
+        setAnimation();
+        updatePos();
+        g.drawImage(animations[playerAction][aniIndex], (int)xDelta, (int)yDelta,200,200, null);
         
         
     }
