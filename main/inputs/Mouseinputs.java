@@ -3,13 +3,19 @@ package inputs;
 import  java.awt.event.MouseListener;
 import  java.awt.event.MouseEvent;
 import  java.awt.event.MouseMotionListener;
+import  main.GamePanel;
 
 public class Mouseinputs implements MouseListener, MouseMotionListener {
-    
+    private GamePanel gamePanel;
     public static int mouseX = 0;
     public static int mouseY = 0;
     public static boolean leftMouse = false;
     public static boolean rightMouse = false;
+
+    public Mouseinputs(GamePanel gamePanel) {
+        this.gamePanel = gamePanel;
+    }
+    
     
     public void mouseClicked(MouseEvent e) {
         System.out.println("Mouse clicked");
@@ -46,7 +52,7 @@ public class Mouseinputs implements MouseListener, MouseMotionListener {
     }
     
     public void mouseMoved(MouseEvent e) {
-        System.out.println("Mouse moved");
+        gamePanel.setRectPos(e.getX(), e.getY());
     }
     
 }
